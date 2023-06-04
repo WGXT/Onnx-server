@@ -68,3 +68,59 @@ class ONNXModel(object):
         # 数据归一化
         image_numpy = image_numpy.astype(np.float32) / 255.0
         return image_numpy
+
+class YOLO(ONNXModel):
+    def __init__(self, onnx_path="ReqFile/yolov5n-7-k5.onnx"):
+        super(YOLO, self).__init__(onnx_path)
+        # 训练所采用的输入图片大小
+        self.img_size = 640
+        self.img_size_h = self.img_size_w = self.img_size
+        self.batch_size = 1
+
+        self.num_classes = 2
+        self.classes = ['person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus', 'train', 'truck', 'boat', 'traffic light',
+        'fire hydrant', 'stop sign', 'parking meter', 'bench', 'bird', 'cat', 'dog', 'horse', 'sheep', 'cow',
+        'elephant', 'bear', 'zebra', 'giraffe', 'backpack', 'umbrella', 'handbag', 'tie', 'suitcase', 'frisbee',
+        'skis', 'snowboard', 'sports ball', 'kite', 'baseball bat', 'baseball glove', 'skateboard', 'surfboard',
+        'tennis racket', 'bottle', 'wine glass', 'cup', 'fork', 'knife', 'spoon', 'bowl', 'banana', 'apple',
+        'sandwich', 'orange', 'broccoli', 'carrot', 'hot dog', 'pizza', 'donut', 'cake', 'chair', 'couch',
+        'potted plant', 'bed', 'dining table', 'toilet', 'tv', 'laptop', 'mouse', 'remote', 'keyboard', 'cell phone',
+        'microwave', 'oven', 'toaster', 'sink', 'refrigerator', 'book', 'clock', 'vase', 'scissors', 'teddy bear',
+        'hair drier', 'toothbrush']
+
+    def to_numpy(self, file, shape, gray=False):
+        def letterbox_image(image, size):
+            iw, ih = image.size
+            w, h = size
+            scale = min(w / iw, h / ih)
+            nw = int(iw * scale)
+            nh = int(ih * scale)
+
+            image = image.resize((nw, nh), Image.BICUBIC)
+            new_image = Image.new('RGB', size, (128, 128, 128))
+            new_image.paste(image, ((w - nw) // 2, (h - nh) // 2))
+            return new_image
+
+        if isinstance(file, np.ndarray):
+            img = Image.fromarray(file)
+        elif isinstance(file, bytes):
+            img = Image.open(BytesIO(file))
+        else:
+            img = Image.open(file)
+        resized = letterbox_image(img, (self.img_size_w, self.img_size_h))
+        img_in = np.transpose(resized, (2, 0, 1)).astype(np.float32)  # HWC -> CHW
+        img_in = np.expand_dims(img_in, axis=0)
+        img_in /= 255.0
+        return img_in
+
+    def decect(self, file):
+        # 图片转换为矩阵
+        image_numpy = self.to_numpy(file, shape=(self.img_size, self.img_size))
+        input_feed = self.get_input_feed(self.input_name, image_numpy)
+        outputs = self.onnx_session.run(self.output_name, input_feed=input_feed)
+        pred = non_max_suppression(outputs[0])
+        if pred:
+            res = tag_images(np.array(Image.open(file)), pred, self.img_size, self.classes)
+        else:
+            res = []
+        return res
