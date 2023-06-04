@@ -1,7 +1,7 @@
 from PIL import Image,ImageDraw
 from utils.operation import YOLO
 
-def detect(onnx_path='ReqFile/yolov5n-7-k5.onnx',img_path=r'ReqFile/bus.jpg',show=True):
+def detect(onnx_path='ReqFile/yolov5n-7-k5.onnx',img_path='ReqFile/bus.jpg',show=True):
     '''
     检测目标，返回目标所在坐标如：
     {'crop': [57, 390, 207, 882], 'classes': 'person'},...]
@@ -13,10 +13,10 @@ def detect(onnx_path='ReqFile/yolov5n-7-k5.onnx',img_path=r'ReqFile/bus.jpg',sho
     yolo = YOLO(onnx_path=onnx_path)
     det_obj = yolo.decect(img_path)
 
-    # 结果
+    # 检测结果
     print (det_obj)
 
-    # 画框框
+    # 画出检测框框
     if show:
         img = Image.open(img_path)
         draw = ImageDraw.Draw(img)
@@ -24,6 +24,7 @@ def detect(onnx_path='ReqFile/yolov5n-7-k5.onnx',img_path=r'ReqFile/bus.jpg',sho
         for i in range(len(det_obj)):
             draw.rectangle(det_obj[i]['crop'],width=3)
         img.show()  # 展示
+    return det_obj
 
 if __name__ == "__main__":
     detect()
