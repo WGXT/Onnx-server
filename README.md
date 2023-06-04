@@ -9,3 +9,9 @@
 可视化onnx模型网络结构：https://netron.app/
 
 ## 安装方式
+
+
+## 服务部署
+```
+uvicorn main:app --reload --host 0.0.0.0
+```
