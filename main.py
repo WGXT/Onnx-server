@@ -19,4 +19,4 @@ async def create_upload_file(file: UploadFile = File(...)):
     im1 = BytesIO(contents)  # 将数据流转换成二进制文件存在内存中
 
     # 返回结果
-    return detect(onnx_path='ReqFile/yolov5n-7-k5.onnx', img=im1, show=False)
+    return detect(onnx_path='Onnx-Model/detect-Occ.onnx', img_path=im1, show=False)
