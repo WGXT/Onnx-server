@@ -1,4 +1,5 @@
 import numpy as np
+import time
 
 np.set_printoptions(precision=4)
 
@@ -92,3 +93,74 @@ def nms(dets, scores, thresh):
         order = order[left_index + 1]
 
     return np.array(keep)
+
+def non_max_suppression(prediction, conf_thres=0.25, iou_thres=0.45, classes=None, agnostic=False, multi_label=False,
+                        labels=()):
+    """Runs Non-Maximum Suppression (NMS) on inference results
+
+        Returns:
+             list of detections, on (n,6) tensor per image [xyxy, conf, cls]
+        """
+    nc = prediction.shape[2] - 5
+    xc = prediction[..., 4] > conf_thres  # candidates
+    # Settings
+    min_wh, max_wh = 2, 4096  # (pixels) minimum and maximum box width and height
+    max_det = 300  # maximum number of detections per image
+    max_nms = 30000  # maximum number of boxes into torchvision.ops.nms()
+    time_limit = 10.0  # seconds to quit after
+    redundant = True  # require redundant detections
+    multi_label &= nc > 1  # multiple labels per box (adds 0.5ms/img)
+    t = time.time()
+    output = [np.zeros((0, 6))] * prediction.shape[0]
+    for xi, x in enumerate(prediction):
+        x = x[xc[xi]]  # confidence
+
+        # Cat apriori labels if autolabelling
+        if labels and len(labels[xi]):
+            l = labels[xi]
+            v = np.zeros((len(l), nc + 5))
+            v[:, :4] = l[:, 1:5]  # box
+            v[:, 4] = 1.0  # conf
+            v[range(len(l)), l[:, 0].long() + 5] = 1.0  # cls
+            x = np.concatenate((x, v), 0)
+
+        # If none remain process next image
+        if not x.shape[0]:
+            continue
+        # Compute conf
+        x[:, 5:] *= x[:, 4:5]  # conf = obj_conf * cls_conf
+
+        # Box (center x, center y, width, height) to (x1, y1, x2, y2)
+        box = xywh2xyxy(x[:, :4])
+        if multi_label:
+            i, j = (x[:, 5:] > conf_thres).nonzero()
+            x = np.concatenate((box[i], x[i, j + 5, None], j[:, None]), 1)
+        else:  # best class only
+            conf = x[:, 5:].max(1, keepdims=True)
+            j = x[:, 5:].argmax(1)
+            j = np.expand_dims(j, 0).T
+            x = np.concatenate((box, conf, j), 1)[conf.reshape(1, -1)[0] > conf_thres]
+
+        # Filter by class
+        if classes is not None:
+            x = x[(x[:, 5:6] == np.array(classes)).any(1)]
+
+        # Check shape
+        n = x.shape[0]  # number of boxes
+        if not n:  # no boxes
+            continue
+        elif n > max_nms:  # excess boxes
+            x = x[x[:, 4].argsort(descending=True)[:max_nms]]  # sort by confidence
+        # Batched NMS
+        c = x[:, 5:6] * (0 if agnostic else max_wh)  # classes
+        boxes, scores = x[:, :4] + c, x[:, 4]  # boxes (offset by class), scores
+
+        i = nms(boxes, scores, iou_thres)  # NMS
+        if i.shape[0] > max_det:  # limit detections
+            i = i[:max_det]
+
+        output[xi] = x[i]
+        if (time.time() - t) > time_limit:
+            print(f'WARNING: NMS time limit {time_limit}s exceeded')
+            break  # time limit exceeded
+        return output

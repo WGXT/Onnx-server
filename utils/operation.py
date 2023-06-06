@@ -70,7 +70,7 @@ class ONNXModel(object):
         return image_numpy
 
 class YOLO(ONNXModel):
-    def __init__(self, onnx_path="ReqFile/yolov5n-7-k5.onnx"):
+    def __init__(self, onnx_path="Onnx-Model/detect-Occ.onnx"):
         super(YOLO, self).__init__(onnx_path)
         # 训练所采用的输入图片大小
         self.img_size = 640
@@ -78,15 +78,7 @@ class YOLO(ONNXModel):
         self.batch_size = 1
 
         self.num_classes = 2
-        self.classes = ['person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus', 'train', 'truck', 'boat', 'traffic light',
-        'fire hydrant', 'stop sign', 'parking meter', 'bench', 'bird', 'cat', 'dog', 'horse', 'sheep', 'cow',
-        'elephant', 'bear', 'zebra', 'giraffe', 'backpack', 'umbrella', 'handbag', 'tie', 'suitcase', 'frisbee',
-        'skis', 'snowboard', 'sports ball', 'kite', 'baseball bat', 'baseball glove', 'skateboard', 'surfboard',
-        'tennis racket', 'bottle', 'wine glass', 'cup', 'fork', 'knife', 'spoon', 'bowl', 'banana', 'apple',
-        'sandwich', 'orange', 'broccoli', 'carrot', 'hot dog', 'pizza', 'donut', 'cake', 'chair', 'couch',
-        'potted plant', 'bed', 'dining table', 'toilet', 'tv', 'laptop', 'mouse', 'remote', 'keyboard', 'cell phone',
-        'microwave', 'oven', 'toaster', 'sink', 'refrigerator', 'book', 'clock', 'vase', 'scissors', 'teddy bear',
-        'hair drier', 'toothbrush']
+        self.classes = ['Occupied_fire_escape','Free_fire_escape']
 
     def to_numpy(self, file, shape, gray=False):
         def letterbox_image(image, size):
