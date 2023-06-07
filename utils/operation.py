@@ -8,7 +8,7 @@ from utils.orientation import non_max_suppression, tag_images
 
 # 设置使用cpu推理
 model_path = "./Onnx-Model/detect-Occ.onnx"
-session = onnxruntime.InferenceSession(model_path,providers=['TensorrtExecutionProvider','CPUExecutionProvider'])
+session = onnxruntime.InferenceSession(model_path,providers=['CPUExecutionProvider'])
 
 class ONNXModel(object):
     def __init__(self, onnx_path):
