@@ -1,7 +1,7 @@
 from PIL import Image,ImageDraw
 from utils.operation import YOLO
 
-def detect(onnx_path='Onnx-Model/detect-Occ.onnx',img_path='img/demo.jpg',show=True):
+def detect(onnx_path='Onnx-Model/detect-Occ.onnx',img_path='img/demo1.jpg',show=True):
     '''
     检测目标，返回目标所在坐标如：
     {'crop': [57, 390, 207, 882], 'classes': 'person'},...]
