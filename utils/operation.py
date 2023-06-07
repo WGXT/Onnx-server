@@ -8,14 +8,13 @@ from utils.orientation import non_max_suppression, tag_images
 
 # 设置使用cpu推理
 model_path = "./Onnx-Model/detect-Occ.onnx"
-session = onnxruntime.InferenceSession(model_path,providers=['CPUExecutionProvider'])
 
 class ONNXModel(object):
     def __init__(self, onnx_path):
         """
         输入参数：onnx_path onnx模型的路径
         """
-        self.onnx_session = onnxruntime.InferenceSession(onnx_path)
+        self.onnx_session = onnxruntime.InferenceSession(onnx_path,providers=['CPUExecutionProvider'])
         self.input_name = self.get_input_name(self.onnx_session)
         self.output_name = self.get_output_name(self.onnx_session)
         # print("input_name:{}".format(self.input_name))
