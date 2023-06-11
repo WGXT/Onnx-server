@@ -39,11 +39,14 @@ class ONNXModel(object):
         return input_name
     
     def get_input_feed(self, input_name, image_numpy):
+        '''
+        输入图片
+        '''
         input_feed = {}
         for name in input_name:
             input_feed[name] = image_numpy
         return input_feed
-
+    
     def to_numpy(self, file, shape, gray=False):
         if isinstance(file, np.ndarray):
             img = Image.fromarray(file)
@@ -54,7 +57,7 @@ class ONNXModel(object):
             img = Image.open(file)
 
         widht, hight = shape
-         # 改变大小 并保证其不失真
+        # 改变大小 并保证其不失真
         img = img.convert('RGB')
         if gray:
             img = img.convert('L')
